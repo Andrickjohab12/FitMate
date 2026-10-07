@@ -136,7 +136,7 @@ const FitSeed = {
           coachId: "co-bruno",
           room: "Sala Bambú",
           level: "Todos",
-          spots: 18,
+          spots: 20,
         },
         {
           id: "cu-box",
@@ -147,7 +147,7 @@ const FitSeed = {
           coachId: "co-luna",
           room: "Ring",
           level: "Medio",
-          spots: 14,
+          spots: 20,
         },
         {
           id: "cu-yoga",
@@ -158,7 +158,7 @@ const FitSeed = {
           coachId: "co-irene",
           room: "Sala Calma",
           level: "Todos",
-          spots: 16,
+          spots: 20,
         },
         {
           id: "cu-funcional",
@@ -180,7 +180,7 @@ const FitSeed = {
           coachId: "co-luna",
           room: "Sala Bikes",
           level: "Medio",
-          spots: 15,
+          spots: 20,
         },
         {
           id: "cu-fuerza",
@@ -191,7 +191,7 @@ const FitSeed = {
           coachId: "co-mateo",
           room: "Sala de pesas",
           level: "Medio",
-          spots: 12,
+          spots: 20,
         },
         {
           id: "cu-movilidad",
@@ -202,7 +202,7 @@ const FitSeed = {
           coachId: "co-irene",
           room: "Sala Calma",
           level: "Inicial",
-          spots: 16,
+          spots: 20,
         },
       ],
       users: [

@@ -24,6 +24,9 @@ const App = (() => {
     search: "",
     routineDay: "lunes",
     courseDay: "lunes",
+    courseTab: "mine",
+    weightOpen: false,
+    weightError: "",
     toast: "",
     sheet: null,
     draft: null,
@@ -281,9 +284,8 @@ const App = (() => {
   function renderLogin() {
     return (
       '<main class="screen login" data-screen="login">' +
-      '<div class="logo-lockup"><div class="mark">' + icons.dumbbell + "</div><div>" +
-      "<h2>FitMate</h2><p>Tu gym, en el teléfono.</p></div></div>" +
-      '<p class="lead">Entras y la app te lleva según tu rol: panel del gimnasio o tu progreso.</p>' +
+      '<div class="login-brand"><div class="mark">' + icons.dumbbell + "</div>" +
+      '<h2>Fit<span>Mate</span></h2></div>' +
       '<form id="login-form" data-action="login" class="card">' +
       '<label class="field">Usuario<input name="username" autocomplete="username" placeholder="Usuario"></label>' +
       '<label class="field">Contraseña<div class="pass-row"><input id="login-pass" name="password" type="password" autocomplete="current-password" placeholder="Contraseña">' +
@@ -452,12 +454,35 @@ const App = (() => {
       '<div class="bar-track"><i style="width:' + Math.min(100, client.musclePercent * 2) + '%"></i></div></section>' +
       '<section class="card"><p class="kicker">Últimas semanas</p><div class="chart">' + bars + "</div>" +
       '<div class="chart-labels"><span>' + fixed(values[0]) + " kg</span><span>Hoy " + fixed(values[values.length - 1]) + " kg</span></div></section>" +
+      renderWeightForm(client) +
       '<div class="split"><div class="mini"><span>Estatura</span><b>' + Math.round(client.height) + ' cm</b></div>' +
       '<div class="mini"><span>IMC</span><b>' + score.toFixed(1) + "</b><span>" + imcLabel(score) + "</span></div></div></main>"
     );
   }
 
+  function renderWeightForm(client) {
+    if (!ui.weightOpen) {
+      return '<button type="button" class="primary mt" data-action="open-weight">Registrar progreso</button>';
+    }
+    return (
+      '<form class="card" data-action="save-weight">' +
+      (ui.weightError ? '<p class="form-error">' + esc(ui.weightError) + "</p>" : "") +
+      '<label class="field">Nuevo peso (kg)<input name="weight" inputmode="decimal" required placeholder="' +
+      fixed(client.currentWeight) + '"></label>' +
+      '<button class="primary" type="submit">Guardar peso</button>' +
+      '<button type="button" class="ghost mt" data-action="close-weight">Cancelar</button></form>'
+    );
+  }
+
   function renderMyCourses(client) {
+    const tabs = '<div class="day-strip course-tabs">' +
+      '<button type="button" class="pill' + (ui.courseTab === "mine" ? " on" : "") + '" data-action="course-tab" data-tab="mine">Mis cursos</button>' +
+      '<button type="button" class="pill' + (ui.courseTab === "all" ? " on" : "") + '" data-action="course-tab" data-tab="all">Todos</button></div>';
+    const body = ui.courseTab === "all" ? renderAllCourses(client) : renderMineCourses(client);
+    return '<main class="screen" data-screen="courses">' + tabs + body + "</main>";
+  }
+
+  function renderMineCourses(client) {
     const mine = myCourses(client);
     const strip = DAYS.map((day) => {
       const on = day.id === ui.courseDay ? " on" : "";
@@ -473,13 +498,39 @@ const App = (() => {
       return '<article class="class-card"><div class="class-time"><strong>' + esc(course.time) + "</strong><span>" +
         esc(daysLabel(course.days)) + "</span></div><div><h3>" + esc(course.name) + "</h3><p>" +
         esc(coachName(course.coachId)) + " · " + esc(course.room) + " · " + esc(course.level) + "</p></div></article>";
-    }).join("") || '<p class="empty">Recepción aún no te anota a una clase.</p>';
+    }).join("") || '<p class="empty">Aún no estás inscrito. Revisa Todos.</p>';
 
     return (
-      '<main class="screen" data-screen="courses"><p class="kicker">Mis cursos</p><h2 class="hello">Tu semana</h2>' +
+      '<h2 class="hello">Tu semana</h2>' +
       '<div class="day-strip">' + strip + "</div>" + cards +
-      '<p class="section-label mt">Todas tus clases</p>' + week + "</main>"
+      '<p class="section-label mt">Tus clases</p>' + week
     );
+  }
+
+  function renderAllCourses(client) {
+    const order = DAYS.map((day) => day.id);
+    const list = Store.courses().slice().sort((a, b) => {
+      const dayA = order.indexOf(a.days[0]);
+      const dayB = order.indexOf(b.days[0]);
+      if (dayA !== dayB) return dayA - dayB;
+      return a.time.localeCompare(b.time);
+    });
+    const cards = list.map((course) => {
+      const used = Store.enrolledCount(course.id);
+      const cap = Math.min(20, course.spots || 20);
+      const joined = client.courseIds.includes(course.id);
+      const full = used >= cap;
+      let button = '<button type="button" class="primary enroll" data-action="enroll" data-id="' + course.id + '">Inscribirme</button>';
+      if (joined) button = '<button type="button" class="ghost enroll" disabled>Inscrito</button>';
+      else if (full) button = '<button type="button" class="ghost enroll" disabled>Cupo lleno</button>';
+      return (
+        '<article class="class-card catalog"><div class="class-time"><strong>' + esc(course.time) + "</strong><span>" +
+        course.duration + ' min</span></div><div><h3>' + esc(course.name) + "</h3><p>" +
+        esc(daysLabel(course.days)) + " · " + esc(coachName(course.coachId)) + "</p><p>" +
+        esc(course.room) + " · " + used + "/" + cap + " personas</p>" + button + "</div></article>"
+      );
+    }).join("");
+    return '<h2 class="hello">Horario</h2><p class="muted">Cada clase acepta hasta 20 personas.</p>' + cards;
   }
 
   function renderClassCard(course) {
@@ -756,7 +807,7 @@ const App = (() => {
 
   function renderCourseForm() {
     const existing = ui.editingId ? Store.course(ui.editingId) : null;
-    const source = ui.draft || existing || { days: [], duration: 60, spots: 16, level: "Todos", time: "18:00" };
+    const source = ui.draft || existing || { days: [], duration: 60, spots: 20, level: "Todos", time: "18:00" };
     const selected = Array.isArray(source.days) ? source.days : source.days ? [source.days] : [];
     const days = DAYS.map((day) => {
       const checked = selected.includes(day.id) ? " checked" : "";
@@ -772,7 +823,7 @@ const App = (() => {
       '<label class="field">Coach<select name="coachId">' + options(coachOptions, source.coachId) + "</select></label>" +
       field("Sala", "room", source.room || "", 'placeholder="Ring"') +
       '<div class="grid-2"><label class="field">Nivel<select name="level">' + options(LEVELS, source.level || "Todos") + "</select></label>" +
-      field("Cupo", "spots", source.spots ?? 16, 'inputmode="numeric"') + "</div>" +
+      field("Cupo (máx. 20)", "spots", source.spots ?? 20, 'inputmode="numeric" max="20"') + "</div>" +
       "<fieldset><legend>Días</legend>" + days + "</fieldset>" +
       '<button class="primary" type="submit">Guardar curso</button></form></main>'
     );
@@ -919,6 +970,35 @@ const App = (() => {
       push("profile");
       return;
     }
+    if (action === "open-weight") {
+      ui.weightOpen = true;
+      ui.weightError = "";
+      render();
+      return;
+    }
+    if (action === "close-weight") {
+      ui.weightOpen = false;
+      ui.weightError = "";
+      render();
+      return;
+    }
+    if (action === "course-tab") {
+      ui.courseTab = el.dataset.tab === "all" ? "all" : "mine";
+      render();
+      return;
+    }
+    if (action === "enroll") {
+      const person = Store.clientOf(Store.session());
+      if (!person) return;
+      const result = Store.enrollCourse(person.id, el.dataset.id);
+      if (!result.ok) {
+        showToast(result.error);
+        return;
+      }
+      ui.courseTab = "mine";
+      showToast("Listo, ya está en Mis cursos");
+      return;
+    }
     if (action === "set-day") {
       if (el.dataset.which === "routine") ui.routineDay = el.dataset.day;
       else ui.courseDay = el.dataset.day;
@@ -1031,6 +1111,20 @@ const App = (() => {
     }
     if (action === "send-chat") {
       sendChat(formToObject(form).text || "");
+      return;
+    }
+    if (action === "save-weight") {
+      const person = Store.clientOf(Store.session());
+      const result = person ? Store.registerWeight(person.id, formToObject(form).weight) : { ok: false, error: "Inicia sesión de nuevo." };
+      if (!result.ok) {
+        ui.weightOpen = true;
+        ui.weightError = result.error;
+        render();
+        return;
+      }
+      ui.weightOpen = false;
+      ui.weightError = "";
+      showToast("Progreso registrado");
       return;
     }
     if (action === "save-client") {

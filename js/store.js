@@ -16,6 +16,16 @@ const Store = (() => {
     if (db.sessionUserId && !db.users.some((user) => user.id === db.sessionUserId)) {
       db.sessionUserId = null;
     }
+    if (Array.isArray(db.courses)) {
+      db.courses.forEach((item) => {
+        if (!item.spots || item.spots > 20) item.spots = 20;
+      });
+      if (!db.classCapApplied) {
+        db.courses.forEach((item) => { item.spots = 20; });
+        db.classCapApplied = true;
+        save();
+      }
+    }
   }
 
   function save() {
@@ -235,7 +245,9 @@ const Store = (() => {
     if (!time) return { ok: false, error: "Indica la hora." };
     if (!coach(coachId)) return { ok: false, error: "Elige un coach." };
     const duration = num(input.duration) || 60;
-    const spots = num(input.spots) || 12;
+    let spots = Math.round(num(input.spots) || 20);
+    if (spots < 1) spots = 1;
+    if (spots > 20) spots = 20;
     const fields = {
       name,
       days,
@@ -403,6 +415,31 @@ const Store = (() => {
     return client.lastCheckIn === isoDate();
   }
 
+  function registerWeight(clientId, weight) {
+    const person = client(clientId);
+    const value = Math.round(num(weight) * 10) / 10;
+    if (!person) return { ok: false, error: "No encontramos tu ficha." };
+    if (value < 30 || value > 250) return { ok: false, error: "Escribe un peso entre 30 y 250 kg." };
+    person.currentWeight = value;
+    const history = Array.isArray(person.weekly) ? person.weekly.slice() : [];
+    history.push(value);
+    person.weekly = history.slice(-8);
+    save();
+    return { ok: true };
+  }
+
+  function enrollCourse(clientId, courseId) {
+    const person = client(clientId);
+    const item = course(courseId);
+    if (!person || !item) return { ok: false, error: "No encontramos ese curso." };
+    if (person.courseIds.includes(courseId)) return { ok: true };
+    const cap = Math.min(20, item.spots || 20);
+    if (enrolledCount(courseId) >= cap) return { ok: false, error: "Este curso ya llegó a " + cap + " personas." };
+    person.courseIds.push(courseId);
+    save();
+    return { ok: true };
+  }
+
   return {
     load,
     save,
@@ -437,6 +474,8 @@ const Store = (() => {
     waterCount,
     checkIn,
     checkedInToday,
+    registerWeight,
+    enrollCourse,
     num,
   };
 })();

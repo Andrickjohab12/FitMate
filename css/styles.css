@@ -135,10 +135,32 @@ button { cursor: pointer; }
 }
 
 .login {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   background:
-    radial-gradient(420px 220px at 90% -10%, #c9f0d8, transparent 60%),
+    radial-gradient(420px 220px at 50% 18%, #c9f0d8, transparent 55%),
     linear-gradient(180deg, #f7fbf8, var(--bg) 42%);
+  padding-bottom: 48px;
 }
+
+.login-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 8px;
+}
+
+.login-brand h2 {
+  margin: 0;
+  font-size: 34px;
+  letter-spacing: -0.05em;
+}
+
+.login-brand h2 span { color: var(--green); }
+
+.login .card { margin-top: 18px; }
 
 .logo-lockup {
   display: flex;
@@ -450,6 +472,10 @@ svg {
 .class-time strong { display: block; font-size: 18px; }
 .class-time span, .class-card p, .day-card p { margin: 2px 0; color: var(--muted); font-size: 13px; }
 .class-card h3, .day-card h3, .person h3 { margin: 0 0 4px; }
+
+.enroll { margin-top: 10px; min-height: 42px; }
+
+.course-tabs { margin-top: 8px; }
 
 .exercise {
   width: 100%;
