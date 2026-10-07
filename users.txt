@@ -1,0 +1,58 @@
+FitMate — credenciales de demostración
+No se muestran en la página. Sirven solo para iniciar sesión.
+
+Admin
+Nombre: Camila Ortiz
+Usuario: Admin
+Contraseña: admin123
+Rol: admin
+Puesto: Dirección
+
+Empleados
+Nombre: Andrick
+Usuario: Andrick
+Contraseña: 130306
+Rol: empleado
+Puesto: Recepción y seguimiento
+
+Nombre: Lucía Vega
+Usuario: Lucia
+Contraseña: lucia123
+Rol: empleado
+Puesto: Coordinación de clases
+
+Clientes
+Nombre: María López
+Usuario: Maria
+Contraseña: maria123
+Rol: cliente
+Plan: Plus
+Objetivo: Bajar grasa
+
+Nombre: Carlos Méndez
+Usuario: Carlos
+Contraseña: carlos123
+Rol: cliente
+Plan: Elite
+Objetivo: Ganar músculo
+
+Nombre: Ana Ruiz
+Usuario: Ana
+Contraseña: ana123
+Rol: cliente
+Plan: Básico
+Objetivo: Bajar grasa
+
+Nombre: Diego Herrera
+Usuario: Diego
+Contraseña: diego123
+Rol: cliente
+Plan: Plus
+Objetivo: Bajar grasa
+
+Nombre: Valeria Soto
+Usuario: Valeria
+Contraseña: valeria123
+Rol: cliente
+Plan: Plus
+Objetivo: Mantenerme
